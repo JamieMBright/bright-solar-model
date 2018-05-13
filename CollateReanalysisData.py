@@ -51,7 +51,9 @@ netcdf_data_dict = dict(
           'conversion_multiplier': [0.01], 'rounding': True},
     # conversion multiplier of 0.01 converts pa to mb
     air={'parent': 'surface_gauss/', 'sub_dir': 'air.2m.gauss.', 'save_format': 'air.2m.gauss.', 'variable': 'air',
-         'conversion_multiplier': [1], 'rounding': False}
+         'conversion_multiplier': [1], 'rounding': False},
+    pr_wtr={'parent': 'surface/', 'sub_dir': 'pr_wtr.eatm.', 'save_format': 'pr_wtr.eatm.', 'variable': 'pr_wtr',
+         'conversion_multiplier': [1], 'rounding': False},
     # conversion multiplier of 1 indicates no change
 )
 
@@ -59,7 +61,7 @@ ncep_url_root = 'ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis/'
 url_end = '.nc'
 
 # The directories must exist and data to be downloaded if not.
-ncep_dirs = ['lcb', 'mcb', 'hcb', 'air', 'pres', 'tcdc', 'uwnd', 'vwnd']
+ncep_dirs = ['lcb', 'mcb', 'hcb', 'air', 'pres', 'tcdc', 'uwnd', 'vwnd', 'pr_wtr']
 for i in ncep_dirs:
     var_dir = reanalysis_dir / i
     if not os.path.isdir(var_dir):
@@ -105,7 +107,7 @@ for lat, lon in locations:
     # - wind speed at top cloud height
 
     # Single dimension extraction variables: pressure, temperature, total cloudiness
-    ncep_dirs_for_extraction = ['pres', 'tcdc', 'air']
+    ncep_dirs_for_extraction = ['pres', 'tcdc', 'air', 'pr_wtr']
     # loop each reanalysis data type directory
     for i in ncep_dirs_for_extraction:
         var_dir_path = os.path.join(reanalysis_dir, i)
