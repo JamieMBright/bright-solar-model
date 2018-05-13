@@ -24,7 +24,7 @@ dir_root = pathlib.Path(os.getcwd())
 # set dir path of reanalysis data
 reanalysis_dir = dir_root / "reanalysis_data"
 
-start_year = 2016
+start_year = 2017
 years_of_data = np.linspace(start_year, 2017, 2017 - start_year + 1).astype(int).astype(str)
 # make a dictionary for the download using the raw var name as reference. Each variable has its own dictionary
 # containing information about the FTP parent, FTP sub directory, the local save format, the actual variable name within
@@ -53,7 +53,7 @@ netcdf_data_dict = dict(
     air={'parent': 'surface_gauss/', 'sub_dir': 'air.2m.gauss.', 'save_format': 'air.2m.gauss.', 'variable': 'air',
          'conversion_multiplier': [1], 'rounding': False},
     pr_wtr={'parent': 'surface/', 'sub_dir': 'pr_wtr.eatm.', 'save_format': 'pr_wtr.eatm.', 'variable': 'pr_wtr',
-         'conversion_multiplier': [1], 'rounding': False},
+            'conversion_multiplier': [1], 'rounding': False},
     # conversion multiplier of 1 indicates no change
 )
 
@@ -226,13 +226,32 @@ for lat, lon in locations:
     wind_speed_hcb = np.hypot(uwnd_hcb, vwnd_hcb)
     wind_speed_ground = np.hypot(uwnd_ground, vwnd_ground)
 
-    # method of deriving direction = atan2(uwnd,vwnd)
-    # these look wrong. perhaps something to do with radians/degrees
-    wind_direction_lcb = np.arctan2(uwnd_lcb, uwnd_lcb)
-    wind_direction_mcb = np.arctan2(uwnd_mcb, uwnd_mcb)
-    wind_direction_hcb = np.arctan2(uwnd_hcb, uwnd_hcb)
-    wind_direction_ground = np.arctan2(uwnd_ground, uwnd_ground)
+    # method of deriving direction = atan2(vwnd, uwnd)
+    wind_direction_lcb = np.arctan2(vwnd_lcb, uwnd_lcb)*180/np.pi
+    wind_direction_mcb = np.arctan2(vwnd_mcb, uwnd_mcb)*180/np.pi
+    wind_direction_hcb = np.arctan2(vwnd_hcb, uwnd_hcb)*180/np.pi
+    wind_direction_ground = np.arctan2(vwnd_ground, uwnd_ground)*180/np.pi
 
     del uwnd_lcb, uwnd_mcb, uwnd_hcb, uwnd_ground, vwnd_lcb, vwnd_mcb, vwnd_hcb, vwnd_ground
 
 print('finished')
+
+# Some plots to assess cross correlation
+# intention is to build a cross correlation plot. With x variables, we would have an x-by-x set of subplots.
+plot_var_names = ['air', 'pr_wtr', 'pres', 'tcdc', 'wind_direction_ground', 'wind_direction_lcb', 'wind_direction_mcb',
+                  'wind_direction_hcb', 'wind_speed_ground', 'wind_speed_lcb', 'wind_speed_mcb', 'wind_speed_hcb']
+axes_names = ['T', 'w', 'p', 'cld', 'dir_g', 'dir_l', 'dir_m', 'dir_h', 'u_g', 'u_l', 'u_m', 'u_h']
+N = len(plot_var_names)
+# create n-by-n subplot
+for n in range(N):
+    for m in range(N):
+        plt.subplot(N + 1, N + 1, (N + 1) * (n + 1) + (m + 1))
+        if n == m:
+            plt.hist(globals()[plot_var_names[n]])
+        else:
+            plt.scatter(globals()[plot_var_names[n]], globals()[plot_var_names[m]], marker=(1, 1), alpha=0.2,)
+        plt.xticks([])
+        plt.yticks([])
+        plt.xlabel(axes_names[m])
+        plt.ylabel(axes_names[n])
+plt.show()
